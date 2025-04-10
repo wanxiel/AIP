@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú Lateral con Tres Niveles</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        }
+        .navbar {
+            background-color: #123458;
+        }
+        .language-selector {
+            margin-left: auto;
+            margin-right: 15px;
+        }
+        .language-btn {
+            color: white;
+            background: none;
+            border: 1px solid white;
+            border-radius: 4px;
+            padding: 1px 5px;
+            margin-left: 5px;
+            cursor: pointer;
+        }
+        .language-btn.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .sidebar {
+            background-color: #F1EFEC;
+            border-right: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .sidebar.collapsed {
+            transform: translateX(-250px);
+        }
+        .menu-item {
+            cursor: pointer;
+            padding: 8px 15px;
+            transition: background-color 0.2s;
+            font-size: 0.9rem;
+            margin-left: 8px;
+            color:#123458;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .menu-title {
+            color:#123458;
+        }
+        .menu-item:hover {
+            background-color: #e9ecef;
+        }
+        .submenu {
+            display: none;
+        }
+        .active-menu {
+            display: block;
+        }
+        .back-button {
+            cursor: pointer;
+            padding: 10px 15px;
+            background-color: #e9ecef;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .back-button:hover {
+            background-color: #dee2e6;
+        }
+        .main-content {
+            transition: margin 0.3s ease;
+            padding: 20px;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .main-content.expanded {
+            margin-left: 0;
+        }
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1100;
+        }
+        .toggle-sidebar-btn {
+            position: absolute;
+            right: -40px;
+            top: 10px;
+            width: 40px;
+            height: 40px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-left: none;
+            border-radius: 0 5px 5px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 999;
+        }
+        .active-option {
+            background-color: #d1e7ff !important;
+            font-weight: bold;
+        }
+        .pdf-container {
+            width: 100%;
+            height: calc(100vh - 100px);
+            border: 1px solid #dee2e6;
+            margin-top: 20px;
+        }
+        .pdf-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .download-btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .mobile-menu-btn {
+                display: block;
+            }
+            .toggle-sidebar-btn {
+                display: none;
+            }
+            .pdf-container {
+                height: calc(100vh - 150px);
+            }
+        }
+        .mobile-navbar {
+            display: none;
+        }
+        @media (max-width: 767.98px) {
+            .mobile-navbar {
+                display: block;
+            }
+            .sidebar {
+                min-height: calc(100vh - 112px);
+            }
+        }
+        .pdf-container-mobile {
+            width: 100%;
+            height: calc(100vh - 150px);
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        @media (max-width: 768px) {
+            .pdf-container-mobile {
+                transform: scale(1.1);
+                transform-origin: top left;
+                width: 110%;
+            }
+}
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex " href="#" id="app-title">
+                <img src="logo-idac.png" alt="IDAC Logo" height="30" class="me-2">
+               
+            </a>    
+           
+
+            <!-- Selector de idioma -->
+            <div class="language-selector">
+                <button class="language-btn active" id="lang-es">ES</button>
+                <button class="language-btn" id="lang-en">EN</button>
+                
+            </div>
+            
+            <!-- Botón para colapsar/expandir sidebar (solo visible en móviles) -->
+            <button class="navbar-toggler d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <!-- Menú del navbar -->
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">  <!-- Agregar ms-auto aquí -->
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" id="nav-amdt">AMDT</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="nav-aic">AIC</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="nav-sup">SUP</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="nav-notam">NOTAM</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Navbar secundario solo para móviles -->
+    <nav class="navbar navbar-light bg-light mobile-navbar">
+        <div class="container-fluid justify-content-start">
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar" id="mobile-menu-btn">
+                <i class="fas fa-list me-2"></i> <span id="mobile-menu-text">Menú</span>
+            </button>
+        </div>
+    </nav>
+    
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="sidebar p-0 col-md-3 col-lg-3" id="sidebar">
+                <!-- Botón para colapsar/expandir (solo en desktop) -->
+                <div class="toggle-sidebar-btn" id="toggleSidebarBtn">
+                    <i class="fas fa-chevron-left" id="toggleIcon"></i>
+                </div>
+                
+                <!-- Menú principal -->
+                <div id="main-menu">
+                     <!-- Divisor visual: Part 1 GENERAL (GEN) -->
+                     <div class="text-uppercase fw-bold small mt-3 mb-1 px-2 menu-title mb-3" id="part1-title">
+                        Part 1 GENERAL (GEN)
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center menu-item lh-1" onclick="showSubmenu('gen0')">
+                        <span class="menu-text" data-es="GEN 0" data-en="GEN 0">GEN 0</span><i class="fa-solid fa-angle-right float-end"></i>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center menu-item lh-1" onclick="showSubmenu('gen1')">
+                        <span class="menu-text" data-es="GEN 1. Regulaciones y requisitos nacionales" data-en="GEN 1. National regulations and requirements">GEN 1. National regulations and requirements</span><i class="fa-solid fa-angle-right float-end"></i>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center menu-item lh-1" onclick="showSubmenu('gen2')">
+                        <span class="menu-text" data-es="GEN 2. Tablas y códigos" data-en="GEN 2. Tables and codes">GEN 2. Tables and codes</span><i class="fa-solid fa-angle-right float-end"></i>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center menu-item lh-1" onclick="showSubmenu('gen3')">
+                        <span class="menu-text" data-es="GEN 3. Servicios" data-en="GEN 3. Services">GEN 3. Services</span><i class="fa-solid fa-angle-right float-end"></i>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center menu-item lh-1" onclick="showSubmenu('gen4')">
+                        <span class="menu-text" data-es="GEN 4. Cargos por aeródromos/helipuertos y servicios de navegación aérea" data-en="GEN 4. Charges for aerodromes/heliports and air navigation services">GEN 4. Charges for aerodromes/heliports and air navigation services</span><i class="fa-solid fa-angle-right float-end"></i>
+                    </div>
+                    <!-- Divisor visual: Aeródromos -->
+                    <div class="text-uppercase menu-title fw-bold small mt-3 mb-1 px-2 mb-3" id="part2-title">
+                        Part II. En-Ruta (ENR)
+                     </div>
+                     <div class="menu-item lh-1" onclick="showSubmenu('ad0')">
+                        <span class="menu-text" data-es="ENR 0. En-Route" data-en="ENR 0. En-Route">ENR 0. En-Route</span><i class="fa-solid fa-angle-right float-end"></i>
+                    </div>
+                    <div class="menu-item lh-1" onclick="showSubmenu('ad0')">
+                        <span class="menu-text" data-es="ENR 1. Reglas y procedimientos generales" data-en="ENR 1. Reglas y procedimientos generales">ENR 1. Reglas y procedimientos generales</span><i class="fa-solid fa-angle-right float-end"></i>
+                    </div>
+                    <div class="menu-item lh-1" onclick="showSubmenu('ad0')">
+                        <span class="menu-text" data-es="ENR 2. Espacio aéreo de los servicios de tránsito aéreo" data-en="ENR 2. Espacio aéreo de los servicios de tránsito aéreo">ENR 2. Espacio aéreo de los servicios de tránsito aéreo</span><i class="fa-solid fa-angle-right float-end"></i>
+                    </div>
+                    <div class="menu-item lh-1" onclick="showSubmenu('ad0')">
+                        <span class="menu-text" data-es="ENR 4. Radioayudas y Sistemas de Navegación" data-en="ENR 4. Radioayudas y Sistemas de Navegación">ENR 4. Radioayudas y Sistemas de Navegación</span><i class="fa-solid fa-angle-right float-end"></i>
+                    </div>
+                    <div class="menu-item lh-1" onclick="showSubmenu('ad0')">
+                        <span class="menu-text" data-es="ENR 5. Avisos para la navegación" data-en="ENR 5. Avisos para la navegación">ENR 5. Avisos para la navegación</span><i class="fa-solid fa-angle-right float-end"></i>
+                    </div>
+                    <div class="menu-item lh-1" onclick="showSubmenu('ad0')">
+                        <span class="menu-text" data-es="ENR 6. Carta de navegación En-Ruta" data-en="ENR 6. Carta de navegación En-Ruta">ENR 6. Carta de navegación En-Ruta</span><i class="fa-solid fa-angle-right float-end"></i>
+                    </div>
+                    
+                     <!-- Divisor visual: Aeródromos -->
+                     <div class="text-uppercase menu-title fw-bold small mt-3 mb-1 px-2 mb-3" id="part3-title">
+                        Part III Aerodromes
+                     </div>
+                    <div class="menu-item lh-1" onclick="showSubmenu('ad0')">
+                        <span class="menu-text" data-es="AD 0." data-en="AD 0.">AD 0.</span><i class="fa-solid fa-angle-right float-end"></i>
+                    </div>
+                    <div class="menu-item lh-1" onclick="showSubmenu('ad1')">
+                        <span class="menu-text" data-es="AD 1. AERÓDROMOS/HELIPUERTOS" data-en="AD 1. AERODROMES/HELIPORTS">AD 1. AERODROMES/HELIPORTS</span><i class="fa-solid fa-angle-right float-end"></i>
+                    </div>
+                    <div class="menu-item lh-1" onclick="showSubmenu('ad2')">
+                        <span class="menu-text" data-es="AD 2. AERÓDROMOS" data-en="AD 2. AERODROMES">AD 2. AERODROMES</span><i class="fa-solid fa-angle-right float-end"></i>
+                    </div>
+                </div>
+                
+                <!-- Submenús -->
+
+                <div id="gen0-submenu" class="submenu">
+                    <div class="back-button" onclick="backToMain()">
+                        <i class="fas fa-arrow-left"></i> <span id="back-text">Volver</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('gen_0-1.pdf', 'Prefacio')">
+                        <span class="menu-text" data-es="GEN 0.1 Prefacio" data-en="GEN 0.1 Preface">GEN 0.1 Preface</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('gen_0-2.pdf', 'Registro de enmiendas AIP')">
+                        <span class="menu-text" data-es="GEN 0.2 Registro de enmiendas AIP" data-en="GEN 0.2 Record of AIP Amendments">GEN 0.2 Record of AIP Amendments</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('gen_0-3.pdf', 'Registro de suplementos AIP')">
+                        <span class="menu-text" data-es="GEN 0.3 Registro de suplementos AIP" data-en="GEN 0.3 Record of AIP Supplements">GEN 0.3 Record of AIP Supplements</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('prefacio.pdf', 'Lista de páginas AIP')">
+                        <span class="menu-text" data-es="GEN 0.4 Lista de páginas AIP" data-en="GEN 0.4 Checklist of AIP pages">GEN 0.4 Checklist of AIP pages</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('prefacio.pdf', 'Lista de enmiendas manuales')">
+                        <span class="menu-text" data-es="GEN 0.5 Lista de enmiendas manuales" data-en="GEN 0.5 List of hand amendments to the AIP">GEN 0.5 List of hand amendments to the AIP</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('prefacio.pdf', 'Tabla de contenidos Parte 1')">
+                        <span class="menu-text" data-es="GEN 0.6 Tabla de contenidos Parte 1" data-en="GEN 0.6 Table of Contents to Part 1">GEN 0.6 Table of Contents to Part 1</span>
+                    </div>
+                </div>
+
+                <div id="ad1-submenu" class="submenu">
+                    <div class="back-button" onclick="backToMain()">
+                        <i class="fas fa-arrow-left"></i> <span id="back-text">Volver</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdsd_data.pdf', 'Datos del aerodromo - MDSD')">
+                        <i class="fas fa-database me-2"></i>
+                        <span class="menu-text" data-es="Datos del aeródromo" data-en="Aerodrome data">Aerodrome data</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdsd_charts.pdf', 'Cartas aerodromo - MDSD')">
+                        <i class="fas fa-map me-2"></i>
+                        <span class="menu-text" data-es="Cartas aeródromo" data-en="Aerodrome charts">Aerodrome charts</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdsd_departures.pdf', 'Cartas de salida - MDSD')">
+                        <i class="fas fa-route me-2"></i>
+                        <span class="menu-text" data-es="Cartas de salida" data-en="Departure charts">Departure charts</span>
+                    </div>
+                </div>
+                
+                <!-- Submenú AD2 (segundo nivel) -->
+                <div id="ad2-submenu" class="submenu">
+                    <div class="back-button" onclick="backToMain()">
+                        <i class="fas fa-arrow-left"></i> <span id="back-text">Volver</span>
+                    </div>
+                    <div class="menu-item" onclick="showThirdLevel('mdsd-data')">
+                        <i class="fas fa-database me-2"></i>
+                        <span class="menu-text" data-es="Aeropuerto Int'l Las Américas, José Francisco Peña Gómez, (MDSD)" data-en="Aeropuerto Int'l Las Américas, José Francisco Peña Gómez, (MDSD)">Aeropuerto Int'l Las Américas, José Francisco Peña Gómez, (MDSD)</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdpc_charts.pdf', 'Cartas aerodromo - MDPC')">
+                        <i class="fas fa-map me-2"></i>
+                        <span class="menu-text" data-es="Cartas aeródromo" data-en="Aerodrome charts">Aerodrome charts</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdpc_departures.pdf', 'Cartas de salida - MDPC')">
+                        <i class="fas fa-route me-2"></i>
+                        <span class="menu-text" data-es="Cartas de salida" data-en="Departure charts">Departure charts</span>
+                    </div>
+                </div>
+                
+                <!-- Tercer nivel para MDSD Datos -->
+                <div id="mdsd-data-submenu" class="submenu">
+                    <div class="back-button" onclick="backToSecondLevel('ad2')">
+                        <i class="fas fa-arrow-left"></i> <span id="back-text">Volver a MDSD</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdpc_data_general.pdf', 'Datos generales - MDPC')">
+                        <i class="fa-solid fa-file-pdf me-2"></i>
+                        <span class="menu-text" data-es="MDSD AD 2.1 Indicador de ubicación y nombre del aeródromo" data-en="MDSD AD 2.1 Aerodrome location indicator and name">MDSD AD 2.1 Aerodrome location indicator and name</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdpc_data_pistas.pdf', 'Datos de pistas - MDPC')">
+                        <i class="fa-regular fa-file-pdf me-2"></i>
+                        <span class="menu-text" data-es="MDSD AD 2.2 Datos geográficos y administrativos del aeródromo" data-en="MDSD AD 2.2 Aerodrome geographical and administrative data">MDSD AD 2.2 Aerodrome geographical and administrative data</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdpc_data_servicios.pdf', 'Servicios - MDPC')">
+                        <i class="fas fa-concierge-bell me-2"></i>
+                        <span class="menu-text" data-es="MDSD AD 2.3 Horas operativas" data-en="MDSD AD 2.3 Operational hours">MDSD AD 2.3 Operational hours</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdpc_data_contactos.pdf', 'Contactos - MDPC')">
+                        <i class="fas fa-address-book me-2"></i>
+                        <span class="menu-text" data-es="MDSD AD 2.4 Servicios y facilidades de handling" data-en="MDSD AD 2.4 Handling services and facilities">MDSD AD 2.4 Handling services and facilities</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdpc_data_contactos.pdf', 'Contactos - MDPC')">
+                        <i class="fas fa-address-book me-2"></i>
+                        <span class="menu-text" data-es="MDSD AD 2.5 Instalaciones para pasajeros" data-en="MDSD AD 2.5 Passenger Facilities">MDSD AD 2.5 Passenger Facilities</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdpc_data_contactos.pdf', 'Contactos - MDPC')">
+                        <i class="fas fa-address-book me-2"></i>
+                        <span class="menu-text" data-es="MDSD AD 2.6 Servicios de rescate y extinción de incendios" data-en="MDSD AD 2.6 Rescue and Fire Fighting Services">MDSD AD 2.6 Rescue and Fire Fighting Services</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdpc_data_contactos.pdf', 'Contactos - MDPC')">
+                        <i class="fas fa-address-book me-2"></i>
+                        <span class="menu-text" data-es="MDSD AD 2.7 Disponibilidad estacional de limpieza" data-en="MDSD AD 2.7 Seasonal Availability Clearing">MDSD AD 2.7 Seasonal Availability Clearing</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdpc_data_contactos.pdf', 'Contactos - MDPC')">
+                        <i class="fas fa-address-book me-2"></i>
+                        <span class="menu-text" data-es="MDSD AD 2.8 Plataformas, pistas de rodaje y datos de ubicación de verificación" data-en="MDSD AD 2.8 Aprons, Taxiways, and Check Location Data">MDSD AD 2.8 Aprons, Taxiways, and Check Location Data</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdpc_data_contactos.pdf', 'Contactos - MDPC')">
+                        <i class="fas fa-address-book me-2"></i>
+                        <span class="menu-text" data-es="MDSD AD 2.9 Sistema de guía y control de movimiento en superficie y marcado" data-en="MDSD AD 2.9 Surface Movement Guidance and Control System and Marking">MDSD AD 2.9 Surface Movement Guidance and Control System and Marking</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdpc_data_contactos.pdf', 'Contactos - MDPC')">
+                        <i class="fas fa-address-book me-2"></i>
+                        <span class="menu-text" data-es="MDSD AD 2.10 Obstáculos del aeródromo" data-en="MDSD AD 2.10 Aerodrome Obstacles">MDSD AD 2.10 Aerodrome Obstacles</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdpc_data_contactos.pdf', 'Contactos - MDPC')">
+                        <i class="fas fa-address-book me-2"></i>
+                        <span class="menu-text" data-es="MDSD AD 2.11 Información meteorológica proporcionada" data-en="MDSD AD 2.11 Meteorological Information Provided">MDSD AD 2.11 Meteorological Information Provided</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdpc_data_contactos.pdf', 'Contactos - MDPC')">
+                        <i class="fas fa-address-book me-2"></i>
+                        <span class="menu-text" data-es="MDSD AD 2.12 Características físicas de la pista" data-en="MDSD AD 2.12 Runway Physical Characteristics">MDSD AD 2.12 Runway Physical Characteristics</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdpc_data_contactos.pdf', 'Contactos - MDPC')">
+                        <i class="fas fa-address-book me-2"></i>
+                        <span class="menu-text" data-es="MDSD AD 2.13 Distancias declaradas" data-en="MDSD AD 2.13 Declared Distances">MDSD AD 2.13 Declared Distances</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdpc_data_contactos.pdf', 'Contactos - MDPC')">
+                        <i class="fas fa-address-book me-2"></i>
+                        <span class="menu-text" data-es="MDSD AD 2.14 Iluminación de aproximación y pista" data-en="MDSD AD 2.14 Approach and Runway Lighting">MDSD AD 2.14 Approach and Runway Lighting</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdpc_data_contactos.pdf', 'Contactos - MDPC')">
+                        <i class="fas fa-address-book me-2"></i>
+                        <span class="menu-text" data-es="MDSD AD 2.15 Otra iluminación, suministro de energía secundario" data-en="MDSD AD 2.15 Other Lighting, Secondary Power Supply">MDSD AD 2.15 Other Lighting, Secondary Power Supply</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdpc_data_contactos.pdf', 'Contactos - MDPC')">
+                        <i class="fas fa-address-book me-2"></i>
+                        <span class="menu-text" data-es="MDSD AD 2.16 Área de aterrizaje para helicópteros" data-en="MDSD AD 2.16 Helicopter Landing Area">MDSD AD 2.16 Helicopter Landing Area</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdpc_data_contactos.pdf', 'Contactos - MDPC')">
+                        <i class="fas fa-address-book me-2"></i>
+                        <span class="menu-text" data-es="MDSD AD 2.17 Espacios aéreos ATS" data-en="MDSD AD 2.17 ATS Airspaces">MDSD AD 2.17 ATS Airspaces</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdpc_data_contactos.pdf', 'Contactos - MDPC')">
+                        <i class="fas fa-address-book me-2"></i>
+                        <span class="menu-text" data-es="MDSD AD 2.18 Instalaciones de comunicación ATS" data-en="MDSD AD 2.18 ATS Communication Facilities">MDSD AD 2.18 ATS Communication Facilities</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdpc_data_contactos.pdf', 'Contactos - MDPC')">
+                        <i class="fas fa-address-book me-2"></i>
+                        <span class="menu-text" data-es="MDSD AD 2.19 Ayudas de navegación por radio y aproximación" data-en="MDSD AD 2.19 Radio Navigation and Landing AIDS">MDSD AD 2.19 Radio Navigation and Landing AIDS</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdpc_data_contactos.pdf', 'Contactos - MDPC')">
+                        <i class="fas fa-address-book me-2"></i>
+                        <span class="menu-text" data-es="MDSD AD 2.20 Regulaciones de tráfico local" data-en="MDSD AD 2.20 Local Traffic Regulations">MDSD AD 2.20 Local Traffic Regulations</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdpc_data_contactos.pdf', 'Contactos - MDPC')">
+                        <i class="fas fa-address-book me-2"></i>
+                        <span class="menu-text" data-es="MDSD AD 2.21 Procedimientos de reducción de ruido" data-en="MDSD AD 2.21 Noise Abatement Procedures">MDSD AD 2.21 Noise Abatement Procedures</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdpc_data_contactos.pdf', 'Contactos - MDPC')">
+                        <i class="fas fa-address-book me-2"></i>
+                        <span class="menu-text" data-es="MDSD AD 2.22 Procedimientos de vuelo" data-en="MDSD AD 2.22 Flight Procedures">MDSD AD 2.22 Flight Procedures</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdpc_data_contactos.pdf', 'Contactos - MDPC')">
+                        <i class="fas fa-address-book me-2"></i>
+                        <span class="menu-text" data-es="MDSD AD 2.23 Información adicional" data-en="MDSD AD 2.23 Additional Information">MDSD AD 2.23 Additional Information</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('mdpc_data_contactos.pdf', 'Contactos - MDPC')">
+                        <i class="fas fa-address-book me-2"></i>
+                        <span class="menu-text" data-es="MDSD AD 2.24 Carta relacionada con el aeródromo" data-en="MDSD AD 2.24 Chart Related to the Aerodrome">MDSD AD 2.24 Chart Related to the Aerodrome</span>
+                    </div>
+                </div>
+                
+                <!-- Submenús adicionales -->
+                <div id="prefacio-submenu" class="submenu">
+                    <div class="back-button" onclick="backToMain()">
+                        <i class="fas fa-arrow-left"></i> <span id="back-text">Volver</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('prefacio.pdf', 'Prefacio')">
+                        <span class="menu-text" data-es="Contenido de Prefacio" data-en="Preface content">Preface content</span>
+                    </div>
+                </div>
+                
+                <div id="registro-submenu" class="submenu">
+                    <div class="back-button" onclick="backToMain()">
+                        <i class="fas fa-arrow-left"></i> <span id="back-text">Volver</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('registro.pdf', 'Registro de enmiendas')">
+                        <span class="menu-text" data-es="Contenido de Registro" data-en="Record content">Record content</span>
+                    </div>
+                </div>
+                
+                <div id="ad0-submenu" class="submenu">
+                    <div class="back-button" onclick="backToMain()">
+                        <i class="fas fa-arrow-left"></i> <span id="back-text">Volver</span>
+                    </div>
+                    <div class="menu-item" onclick="showPdf('aerdromos.pdf', 'Aerdromos')">
+                        <span class="menu-text" data-es="Contenido de Aeródromos" data-en="Aerodromes content">Aerodromes content</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Contenido principal -->
+            <div class="main-content col-md-9 ms-sm-auto col-lg-9" id="mainContent">
+                <div id="pdfViewer" style="display: none;">
+                    <div class="pdf-header">
+                        <h4 id="pdfTitle">Título del PDF</h4>
+                        <a id="downloadPdf" class="btn btn-primary download-btn" href="#" download>
+                            <i class="fas fa-download"></i> <span id="download-text">Descargar PDF</span>
+                        </a>
+                    </div>
+                    <div class="pdf-container-mobile">
+                        <iframe id="pdfEmbed" width="100%" height="100%" style="border: none;"></iframe>
+                    </div>
+                </div>
+                <div id="emptyState">
+                    <h1 id="main-title" class="text-center">Contenido Principal</h1>
+                    <p id="main-description">Selecciona una opción del menú para ver el documento correspondiente.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Variable para rastrear la opción activa
+        let activeOption = null;
+        let currentPdfUrl = '';
+        let isSidebarCollapsed = false;
+        let currentMenuLevel = 'main'; // 'main', 'second', 'third'
+        let currentSecondLevelMenu = '';
+        let currentLanguage = 'es'; // 'es' o 'en'
+        
+        // Textos traducidos
+        const translations = {
+            es: {
+                appTitle: "Mi Aplicación",
+                back: "Volver",
+                backToMDSD: "Volver a MDSD",
+                download: "Descargar PDF",
+                mainTitle: "Publicación de Información Aeronáutica (AIP) ",
+                mainDescription: "Selecciona una opción del menú para ver el documento correspondiente.",
+                mobileMenu: "Menú",
+                part1Title: "Parte 1 GENERAL (GEN)",
+                part3Title: "Parte III Aeródromos",
+                nav: {
+                    amdt: "AMDT",
+                    aic: "AIC",
+                    sup: "SUP",
+                    notam: "NOTAM"
+                }
+            },
+            en: {
+                back: "Back",
+                backToMDSD: "Back to MDSD",
+                download: "Download PDF",
+                mainTitle: "Aeronautical Information Publication (AIP)",
+                mainDescription: "Select a menu option to view the corresponding document.",
+                mobileMenu: "Menu",
+                part1Title: "Part 1 GENERAL (GEN)",
+                part3Title: "Part III Aerodromes",
+                nav: {
+                    amdt: "AMDT",
+                    aic: "AIC",
+                    sup: "SUP",
+                    notam: "NOTAM"
+                }
+            }
+        };
+        
+        // Cambiar idioma
+        function changeLanguage(lang) {
+            currentLanguage = lang;
+            
+            // Actualizar botones de idioma
+            document.getElementById('lang-es').classList.toggle('active', lang === 'es');
+            document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+            
+            // Actualizar textos estáticos
+            document.getElementById('back-text').textContent = translations[lang].back;
+            document.getElementById('download-text').textContent = translations[lang].download;
+            document.getElementById('main-title').textContent = translations[lang].mainTitle;
+            document.getElementById('main-description').textContent = translations[lang].mainDescription;
+            document.getElementById('mobile-menu-text').textContent = translations[lang].mobileMenu;
+            document.getElementById('part1-title').textContent = translations[lang].part1Title;
+            document.getElementById('part3-title').textContent = translations[lang].part3Title;
+            
+            // Actualizar navegación
+            document.getElementById('nav-amdt').textContent = translations[lang].nav.amdt;
+            document.getElementById('nav-aic').textContent = translations[lang].nav.aic;
+            document.getElementById('nav-sup').textContent = translations[lang].nav.sup;
+            document.getElementById('nav-notam').textContent = translations[lang].nav.notam;
+            
+            // Actualizar todos los textos del menú
+            document.querySelectorAll('.menu-text').forEach(element => {
+                element.textContent = element.getAttribute(`data-${lang}`);
+            });
+            
+            // Actualizar el botón de volver en el tercer nivel si está activo
+            const backToMDSD = document.querySelector('#mdsd-data-submenu .back-button span');
+            if (backToMDSD) {
+                backToMDSD.textContent = translations[lang].backToMDSD;
+            }
+        }
+        
+        function showSubmenu(menuId) {
+            // Oculta todos los submenús
+            document.querySelectorAll('.submenu').forEach(menu => {
+                menu.classList.remove('active-menu');
+            });
+            
+            // Oculta el menú principal
+            document.getElementById('main-menu').style.display = 'none';
+            
+            // Muestra el submenú seleccionado
+            document.getElementById(menuId + '-submenu').classList.add('active-menu');
+            
+            // Actualiza el nivel actual
+            currentMenuLevel = 'second';
+            currentSecondLevelMenu = menuId;
+            
+            // En móviles, mantener abierto el menú
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.add('show');
+            }
+        }
+        
+        function showThirdLevel(menuId) {
+            // Oculta todos los submenús
+            document.querySelectorAll('.submenu').forEach(menu => {
+                menu.classList.remove('active-menu');
+            });
+            
+            // Muestra el submenú de tercer nivel seleccionado
+            document.getElementById(menuId + '-submenu').classList.add('active-menu');
+            
+            // Actualiza el nivel actual
+            currentMenuLevel = 'third';
+            
+            // En móviles, mantener abierto el menú
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.add('show');
+            }
+        }
+        
+        function backToMain() {
+            // Oculta todos los submenús
+            document.querySelectorAll('.submenu').forEach(menu => {
+                menu.classList.remove('active-menu');
+            });
+            
+            // Muestra el menú principal
+            document.getElementById('main-menu').style.display = 'block';
+            
+            // Limpia la selección activa
+            if (activeOption) {
+                activeOption.classList.remove('active-option');
+                activeOption = null;
+            }
+            
+            // Actualiza el nivel actual
+            currentMenuLevel = 'main';
+            currentSecondLevelMenu = '';
+            
+            // En móviles, mantener abierto el menú
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.add('show');
+            }
+        }
+        
+        function backToSecondLevel(menuId) {
+            // Oculta todos los submenús
+            document.querySelectorAll('.submenu').forEach(menu => {
+                menu.classList.remove('active-menu');
+            });
+            
+            // Muestra el submenú de segundo nivel
+            document.getElementById(menuId + '-submenu').classList.add('active-menu');
+            
+            // Actualiza el nivel actual
+            currentMenuLevel = 'second';
+            currentSecondLevelMenu = menuId;
+            
+            // En móviles, mantener abierto el menú
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.add('show');
+            }
+        }
+        
+        function showPdf(pdfUrl, title) {
+            // Remueve la clase activa de la opción anterior
+            if (activeOption) {
+                activeOption.classList.remove('active-option');
+            }
+            
+            // Añade la clase activa a la nueva opción seleccionada
+            event.currentTarget.classList.add('active-option');
+            activeOption = event.currentTarget;
+            
+            // Guarda la URL actual del PDF
+            currentPdfUrl = pdfUrl;
+            
+            // Actualiza el visor de PDF
+            document.getElementById('pdfTitle').textContent = title;
+            document.getElementById('downloadPdf').href = pdfUrl;
+            document.getElementById('pdfEmbed').src = pdfUrl;
+            
+            // Muestra el visor de PDF y oculta el estado vacío
+            document.getElementById('pdfViewer').style.display = 'block';
+            document.getElementById('emptyState').style.display = 'none';
+            
+            // En móviles, cerrar el menú después de seleccionar una opción
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('show');
+            }
+        }
+        
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const toggleIcon = document.getElementById('toggleIcon');
+            
+            isSidebarCollapsed = !isSidebarCollapsed;
+            
+            if (isSidebarCollapsed) {
+                sidebar.classList.add('collapsed');
+                mainContent.classList.add('expanded');
+                toggleIcon.classList.remove('fa-chevron-left');
+                toggleIcon.classList.add('fa-chevron-right');
+            } else {
+                sidebar.classList.remove('collapsed');
+                mainContent.classList.remove('expanded');
+                toggleIcon.classList.remove('fa-chevron-right');
+                toggleIcon.classList.add('fa-chevron-left');
+            }
+        }
+        
+        // Event listeners para los botones de idioma
+        document.getElementById('lang-es').addEventListener('click', () => changeLanguage('es'));
+        document.getElementById('lang-en').addEventListener('click', () => changeLanguage('en'));
+        
+        // Control del botón para colapsar/expandir sidebar
+        document.getElementById('toggleSidebarBtn').addEventListener('click', toggleSidebar);
+        
+        // Cerrar menú al hacer clic en el contenido principal (solo móviles)
+        document.getElementById('mainContent').addEventListener('click', function() {
+            if (window.innerWidth <= 768 && document.getElementById('sidebar').classList.contains('show')) {
+                document.getElementById('sidebar').classList.remove('show');
+            }
+        });
+        
+        // Ajustar el menú al cambiar el tamaño de la ventana
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                document.getElementById('sidebar').classList.add('show');
+                // Restaurar sidebar si estaba expandido al cambiar a desktop
+                if (!isSidebarCollapsed) {
+                    document.getElementById('sidebar').classList.remove('collapsed');
+                    document.getElementById('mainContent').classList.remove('expanded');
+                    document.getElementById('toggleIcon').classList.remove('fa-chevron-right');
+                    document.getElementById('toggleIcon').classList.add('fa-chevron-left');
+                }
+            }
+        });
+        
+        // Inicializar con español
+        changeLanguage('es');
+    </script>
+</body>
+</html>
